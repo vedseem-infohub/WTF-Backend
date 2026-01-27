@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import User from '../models/User.js';
+import { signup, verifyOTP, resendOTP } from '../controllers/auth.controllers.js';
 
 const router = express.Router();
 
@@ -67,38 +68,34 @@ const sendOTPEmail = async (email, otp, firstName) => {
   await transporter.sendMail(mailOptions);
 };
 
-// Signup - Step 1: Create user and send OTP
 router.post('/signup', async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, addresses } = req.body;
+  const filteredAddresses = addresses ? addresses.filter(addr => addr.trim() !== '') : [];
 
   try {
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      if (existingUser.isEmailVerified) {
-        return res.status(400).json({ message: 'Email already registered and verified' });
-      }
-      // If user exists but not verified, resend OTP
-      const otp = generateOTP();
-      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      return res.status(400).json({ message: 'Email already registered' });
+      // const otp = generateOTP();
+      // const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-      existingUser.emailVerificationOTP = otp;
-      existingUser.otpExpiry = otpExpiry;
-      await existingUser.save();
+      // existingUser.emailVerificationOTP = otp;
+      // existingUser.otpExpiry = otpExpiry;
+      // await existingUser.save();
 
-      await sendOTPEmail(email, otp, existingUser.firstName);
-      return res.status(200).json({
-        message: 'OTP resent to your email',
-        userId: existingUser._id,
-      });
+      // await sendOTPEmail(email, otp, existingUser.firstName);
+      // return res.status(200).json({
+      //   message: 'OTP resent to your email',
+      //   userId: existingUser._id,
+      // });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate OTP
-    const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    // Generate OTP (COMMENTED OUT - Auto-verify users)
+    // const otp = generateOTP();
+    // const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Create new user
     const newUser = new User({
@@ -106,19 +103,36 @@ router.post('/signup', async (req, res) => {
       lastName,
       email,
       password: hashedPassword,
-      emailVerificationOTP: otp,
-      otpExpiry,
-      isEmailVerified: false,
+      addresses: filteredAddresses,
+      // emailVerificationOTP: otp,
+      // otpExpiry,
+      isEmailVerified: true, // AUTO-VERIFY - No email verification required
     });
 
     await newUser.save();
 
-    // Send OTP email
-    await sendOTPEmail(email, otp, firstName);
+    // Send OTP email (COMMENTED OUT)
+    // await sendOTPEmail(email, otp, firstName);
+
+    // Generate JWT token immediately
+    const token = jwt.sign(
+      { userId: newUser._id, email: newUser.email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '7d' }
+    );
 
     res.status(201).json({
-      message: 'User created. OTP sent to your email',
-      userId: newUser._id,
+      message: 'User created successfully',
+      token,
+      user: {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        addresses: newUser.addresses,
+        isEmailVerified: newUser.isEmailVerified,
+      },
+      // userId: newUser._id, // For OTP verification (not needed now)
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -171,6 +185,7 @@ router.post('/verify-otp', async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        addresses: user.addresses,
         isEmailVerified: user.isEmailVerified,
       },
     });

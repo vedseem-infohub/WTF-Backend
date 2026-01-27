@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  addresses: {
+    type: [String],
+    default: [],
+  },
   emailVerificationOTP: {
     type: String,
   },

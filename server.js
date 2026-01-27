@@ -3,8 +3,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import connectDB from './config/db.js';
-import foodRoutes from './routes/foodRoutes.js';
+import foodRoutes from './routes/popularFoodItems.Routes.js';
 import authRoutes from './routes/authRoutes.js';
+import uploadRoutes from './routes/upload.Routes.js';
+import packagesRoutes from './routes/packages.Routes.js';
 
 dotenv.config();
 
@@ -22,6 +24,8 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 // Routes
 app.use('/api/food', foodRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/packages', packagesRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
