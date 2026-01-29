@@ -1,15 +1,21 @@
 import express from 'express';
 import { getAllPackages, addPackage, deletePackage } from '../controllers/packages.controllers.js';
+// import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Get all packages
-router.get('/', getAllPackages);
+router.get('/',
+  getAllPackages
+);
 
-// Add new package
-router.post('/', addPackage);
+router.post('/',
+  // verifyToken,
+  addPackage
+);
 
-// Delete package
-router.delete('/:id', deletePackage);
+router.delete('/:id',
+  // verifyToken,
+  deletePackage
+);
 
 export default router;

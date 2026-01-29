@@ -16,11 +16,14 @@ const foodSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  isVeg: {
-    type: Boolean,
-    default: true,
+  rating: {
+    type: Number,
+    default: 5,
   },
-}, { timestamps: true });
+}, {
+  timestamps: true,
+  versionKey: false
+});
 
 const Food = mongoose.model('Food', foodSchema);
 

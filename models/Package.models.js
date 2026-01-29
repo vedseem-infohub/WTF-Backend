@@ -22,7 +22,10 @@ const packageSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-}, { timestamps: true });
+}, {
+  timestamps: true,
+  versionKey: false
+});
 
 const Package = mongoose.model('Package', packageSchema);
 

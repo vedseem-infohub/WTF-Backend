@@ -3,11 +3,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import User from '../models/User.js';
-import { signup, verifyOTP, resendOTP } from '../controllers/auth.controllers.js';
 
 const router = express.Router();
 
-// Email transporter configuration
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -16,12 +14,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Generate 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Send OTP email
 const sendOTPEmail = async (email, otp, firstName) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -76,45 +72,21 @@ router.post('/signup', async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
-      // const otp = generateOTP();
-      // const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-      // existingUser.emailVerificationOTP = otp;
-      // existingUser.otpExpiry = otpExpiry;
-      // await existingUser.save();
-
-      // await sendOTPEmail(email, otp, existingUser.firstName);
-      // return res.status(200).json({
-      //   message: 'OTP resent to your email',
-      //   userId: existingUser._id,
-      // });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate OTP (COMMENTED OUT - Auto-verify users)
-    // const otp = generateOTP();
-    // const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Create new user
     const newUser = new User({
       firstName,
       lastName,
       email,
       password: hashedPassword,
       addresses: filteredAddresses,
-      // emailVerificationOTP: otp,
-      // otpExpiry,
-      isEmailVerified: true, // AUTO-VERIFY - No email verification required
+      isEmailVerified: true, 
     });
 
     await newUser.save();
 
-    // Send OTP email (COMMENTED OUT)
-    // await sendOTPEmail(email, otp, firstName);
-
-    // Generate JWT token immediately
     const token = jwt.sign(
       { userId: newUser._id, email: newUser.email },
       process.env.JWT_SECRET || 'your-secret-key',
@@ -132,7 +104,6 @@ router.post('/signup', async (req, res) => {
         addresses: newUser.addresses,
         isEmailVerified: newUser.isEmailVerified,
       },
-      // userId: newUser._id, // For OTP verification (not needed now)
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -140,7 +111,6 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// Verify OTP
 router.post('/verify-otp', async (req, res) => {
   const { userId, otp } = req.body;
 
@@ -154,23 +124,19 @@ router.post('/verify-otp', async (req, res) => {
       return res.status(400).json({ message: 'Email already verified' });
     }
 
-    // Check if OTP is expired
     if (new Date() > user.otpExpiry) {
       return res.status(400).json({ message: 'OTP expired. Please request a new one' });
     }
 
-    // Verify OTP
     if (user.emailVerificationOTP !== otp) {
       return res.status(400).json({ message: 'Invalid OTP' });
     }
 
-    // Mark email as verified
     user.isEmailVerified = true;
     user.emailVerificationOTP = undefined;
     user.otpExpiry = undefined;
     await user.save();
 
-    // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET || 'your-secret-key',
@@ -195,7 +161,6 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
-// Resend OTP
 router.post('/resend-otp', async (req, res) => {
   const { userId } = req.body;
 
@@ -209,7 +174,6 @@ router.post('/resend-otp', async (req, res) => {
       return res.status(400).json({ message: 'Email already verified' });
     }
 
-    // Generate new OTP
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -217,7 +181,6 @@ router.post('/resend-otp', async (req, res) => {
     user.otpExpiry = otpExpiry;
     await user.save();
 
-    // Send OTP email
     await sendOTPEmail(user.email, otp, user.firstName);
 
     res.status(200).json({ message: 'OTP resent successfully' });
@@ -227,18 +190,15 @@ router.post('/resend-otp', async (req, res) => {
   }
 });
 
-// Login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Find user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if email is verified
     if (!user.isEmailVerified) {
       return res.status(403).json({
         message: 'Email not verified. Please verify your email first',
@@ -247,13 +207,10 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET || 'your-secret-key',

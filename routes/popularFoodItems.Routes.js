@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllFoodItems, addFoodItem, deleteFoodItem } from '../controllers/popularFoodItems.controllers.js';
+import { getAllFoodItems, addFoodItem, deleteFoodItem, updateFoodItem } from '../controllers/popularFoodItems.controllers.js';
 
 const router = express.Router();
 
@@ -11,5 +11,8 @@ router.post('/', addFoodItem);
 
 // Delete popular food item
 router.delete('/:id', deleteFoodItem);
+
+// Update popular food item
+router.put('/:id', updateFoodItem);
 
 export default router;

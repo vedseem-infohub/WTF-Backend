@@ -1,6 +1,5 @@
 import Package from '../models/Package.models.js';
 
-// Get all packages
 export const getAllPackages = async (req, res) => {
   try {
     const packages = await Package.find().sort({ createdAt: -1 });
@@ -10,7 +9,6 @@ export const getAllPackages = async (req, res) => {
   }
 };
 
-// Add new package
 export const addPackage = async (req, res) => {
   const { packageName, price, numberOfPeople, image, isVeg } = req.body;
 
