@@ -11,6 +11,7 @@ import blogsRoutes from './routes/blogsRoutes.js';
 import occasionsRoutes from './routes/occasions.Routes.js';
 import servicesRoutes from './routes/services.Routes.js';
 import categoriesRoutes from './routes/categories.Routes.js';
+import youtubeRoutes from './routes/youtube.Routes.js';
 
 
 dotenv.config();
@@ -35,6 +36,7 @@ app.use('/api/blogs', blogsRoutes);
 app.use('/api/occasions', occasionsRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/categories', categoriesRoutes);
+app.use('/api/youtube', youtubeRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
