@@ -15,13 +15,22 @@ const packageSchema = new mongoose.Schema({
     min: 8,
   },
   image: {
-    type: String, // Cloudinary URL
+    type: String,
     required: true,
   },
   isVeg: {
     type: Boolean,
     default: true,
   },
+  occasionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Occasion',
+    required: true,
+  },
+  selectedItems: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'MenuItem'
+  }],
 }, {
   timestamps: true,
   versionKey: false

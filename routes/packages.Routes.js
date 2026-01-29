@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllPackages, addPackage, deletePackage } from '../controllers/packages.controllers.js';
+import { getAllPackages, addPackage, deletePackage, updatePackage } from '../controllers/packages.controllers.js';
 // import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -11,6 +11,11 @@ router.get('/',
 router.post('/',
   // verifyToken,
   addPackage
+);
+
+router.put('/:id',
+  // verifyToken,
+  updatePackage
 );
 
 router.delete('/:id',

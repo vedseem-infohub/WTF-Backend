@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import connectDB from './config/db.js';
@@ -18,18 +19,16 @@ import menuItemsRoutes from './routes/menuItems.Routes.js';
 
 dotenv.config();
 
-// Connect to Database
 connectDB();
 
 const app = express();
 const PORT = 5000;
 
-// Middleware
 app.use(cors());
+app.use(compression());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// Routes
 app.use('/api/food', foodRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
