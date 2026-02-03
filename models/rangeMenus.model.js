@@ -9,10 +9,6 @@ const rangeMenuSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  price: {
-    type: Number,
-    required: true,
-  },
   rating: {
     type: Number,
     required: true,

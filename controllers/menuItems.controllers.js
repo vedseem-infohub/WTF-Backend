@@ -13,10 +13,10 @@ export const getAllMenuItems = async (req, res) => {
 
 
 export const addMenuItem = async (req, res) => {
-  const { name, image, type, price, category, people, portionSize, active } = req.body;
+  const { name, image, type, category, people, quantity, measurement, unitPrice, active } = req.body;
 
-  if (!name || !price || !category) {
-    return res.status(400).json({ message: 'Name, price, and category are required' });
+  if (!name || !category) {
+    return res.status(400).json({ message: 'Name and category are required' });
   }
 
   try {
@@ -24,10 +24,11 @@ export const addMenuItem = async (req, res) => {
       name,
       image,
       type,
-      price,
       category,
       people,
-      portionSize,
+      quantity,
+      measurement,
+      unitPrice,
       active
     });
     await newItem.save();

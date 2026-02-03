@@ -12,14 +12,14 @@ export const getAllRangeMenus = async (req, res) => {
 
 // Add new range menu
 export const addRangeMenu = async (req, res) => {
-  const { name, image, price, rating, range } = req.body;
+  const { name, image, rating, range } = req.body;
 
-  if (!name || !image || !price || !rating || !range) {
+  if (!name || !image || !rating || !range) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
   try {
-    const newMenu = new RangeMenu({ name, image, price, rating, range });
+    const newMenu = new RangeMenu({ name, image, rating, range });
     await newMenu.save();
     res.status(201).json(newMenu.toObject());
   } catch (error) {
@@ -30,12 +30,12 @@ export const addRangeMenu = async (req, res) => {
 // Update range menu
 export const updateRangeMenu = async (req, res) => {
   const { id } = req.params;
-  const { name, image, price, rating, range } = req.body;
+  const { name, image, rating, range } = req.body;
 
   try {
     const updatedMenu = await RangeMenu.findByIdAndUpdate(
       id,
-      { name, image, price, rating, range },
+      { name, image, rating, range },
       { new: true, lean: true }
     );
 

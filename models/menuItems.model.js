@@ -14,12 +14,8 @@ const menuItemSchema = new mongoose.Schema({
     enum: ['Veg', 'Non-Veg'],
     default: 'Veg',
   },
-  price: {
-    type: Number,
-    required: true,
-  },
   category: {
-    type: Number, // Using ID as per existing frontend logic (1=Starter, etc.)
+    type: Number,
     required: true,
   },
   active: {
@@ -30,8 +26,17 @@ const menuItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  portionSize: {
+  quantity: {
+    type: Number,
+    required: true,
+  },
+  measurement: {
     type: String,
+    enum: ['kg', 'pcs'],
+    required: true,
+  },
+  unitPrice: {
+    type: Number,
     required: true,
   },
 }, {
