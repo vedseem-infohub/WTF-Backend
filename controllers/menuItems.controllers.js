@@ -4,11 +4,11 @@ import MenuItem from '../models/menuItems.model.js';
 export const getAllMenuItems = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20; // Default to 20 items per page
+    const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
     const { category, type, active } = req.query;
-    const query = { isDeleted: false }; // Only fetch non-deleted items
+    const query = { isDeleted: false };
 
     if (category) query.category = category;
     if (type) query.type = type;

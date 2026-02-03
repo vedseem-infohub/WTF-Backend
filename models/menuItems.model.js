@@ -19,7 +19,7 @@ const menuItemSchema = new mongoose.Schema({
   category: {
     type: Number,
     required: true,
-    index: true, // Critical for filtering by category
+    index: true,
   },
   active: {
     type: Boolean,
@@ -53,7 +53,6 @@ const menuItemSchema = new mongoose.Schema({
   versionKey: false
 });
 
-// Composite index for common "Show me active Veg Starters" queries
 menuItemSchema.index({ category: 1, type: 1, active: 1, isDeleted: 1 });
 
 const MenuItem = mongoose.model('MenuItem', menuItemSchema);

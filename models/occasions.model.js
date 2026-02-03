@@ -13,19 +13,18 @@ const occasionSchema = new mongoose.Schema({
   active: {
     type: Boolean,
     default: true,
-    index: true, // Optimized for filtering active occasions
+    index: true,
   },
   isDeleted: {
     type: Boolean,
     default: false,
-    index: true, // Optimization for soft delete queries
+    index: true,
   }
 }, {
   timestamps: true,
   versionKey: false
 });
 
-// Compound index for common queries
 occasionSchema.index({ active: 1, isDeleted: 1 });
 
 const Occasion = mongoose.model('Occasion', occasionSchema);
