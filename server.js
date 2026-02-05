@@ -17,6 +17,12 @@ import rangeMenusRoutes from './routes/rangeMenus.Routes.js';
 import menuItemsRoutes from './routes/menuItems.Routes.js';
 import packageMenuSelectionRoutes from './routes/packageMenuSelection.routes.js';
 import menuSelectionRoutes from './routes/menuSelection.routes.js';
+import testimonialsRoutes from './routes/testimonials.routes.js';
+import eventsRoutes from './routes/events.routes.js';
+import categoryRoutes from './routes/category.routes.js';
+import serviceRoutes from './routes/service.routes.js';
+import serviceConfigurationRoutes from './routes/serviceConfiguration.routes.js';
+import serviceSelectionRoutes from './routes/serviceSelection.routes.js';
 import helmet from 'helmet';
 import { globalLimiter } from './middleware/rateLimit.js';
 
@@ -25,7 +31,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -62,6 +68,12 @@ app.use('/api/range-menus', rangeMenusRoutes);
 app.use('/api/menu-items', menuItemsRoutes);
 app.use('/api/package-menu', packageMenuSelectionRoutes);
 app.use('/api/menu-selection', menuSelectionRoutes);
+app.use('/api/testimonials', testimonialsRoutes);
+app.use('/api/events', eventsRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/service-config', serviceConfigurationRoutes);
+app.use('/api/service-selection', serviceSelectionRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

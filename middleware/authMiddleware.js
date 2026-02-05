@@ -20,9 +20,9 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
-export const generateToken = (userId, email) => {
+export const generateToken = (user) => {
   return jwt.sign(
-    { userId, email },
+    { userId: user._id, email: user.email },
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
   );
