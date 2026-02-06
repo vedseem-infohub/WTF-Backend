@@ -4,24 +4,19 @@ export const uploadImage = async (req, res) => {
   const { image } = req.body;
 
   if (!image) {
+    console.error("Upload failed: No image data received");
     return res.status(400).json({ message: 'Image data is required' });
   }
 
+  console.log(`[Upload] Received image data length: ${image.length}`);
+
   try {
+    console.log("[Upload] Starting Cloudinary upload...");
     const result = await cloudinary.uploader.upload(image, {
       folder: process.env.CLOUDINARY_FOLDER || 'wtf-admin',
       resource_type: 'auto',
-      transformation: [
-        { width: 1200, height: 1200, crop: 'limit' },
-        { quality: 'auto' },
-        { fetch_format: 'auto' }
-      ],
-      eager: [
-        { width: 400, height: 400, crop: 'fill', quality: 'auto', fetch_format: 'auto' },
-        { width: 800, height: 800, crop: 'limit', quality: 'auto', fetch_format: 'auto' }
-      ],
-      eager_async: true
     });
+    console.log("[Upload] Cloudinary upload success:", result.public_id);
 
     const optimizedUrl = cloudinary.url(result.public_id, {
       width: 800,
