@@ -8,15 +8,8 @@ export const uploadImage = async (req, res) => {
     return res.status(400).json({ message: 'Image data is required' });
   }
 
-  console.log(`[Upload] Received image data length: ${image.length}`);
 
   try {
-    console.log("[Upload] Starting Cloudinary upload...");
-    const result = await cloudinary.uploader.upload(image, {
-      folder: process.env.CLOUDINARY_FOLDER || 'wtf-admin',
-      resource_type: 'auto',
-    });
-    console.log("[Upload] Cloudinary upload success:", result.public_id);
 
     const optimizedUrl = cloudinary.url(result.public_id, {
       width: 800,

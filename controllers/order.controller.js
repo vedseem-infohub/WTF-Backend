@@ -27,6 +27,8 @@ export const createOrder = async (req, res) => {
       notes
     } = req.body;
 
+    console.log('Received Order Request:', JSON.stringify(req.body, null, 2));
+
     if (!entityType || !entityId || !items || !totalAmount) {
       return res.status(400).json({
         success: false,
@@ -60,6 +62,14 @@ export const createOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating order:', error);
+    if (error.name === 'ValidationError') {
+      console.error('Validation Errors:', JSON.stringify(error.errors, null, 2));
+      return res.status(500).json({
+        success: false,
+        message: 'Order validation failed',
+        errors: error.errors
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'Failed to create order',
@@ -207,5 +217,96 @@ export const updateOrderStatus = async (req, res) => {
       message: 'Failed to update order',
       error: error.message
     });
+  }
+};
+
+import { createZohoPaymentLink } from '../utils/zohoPayment.js';
+
+export const initiatePayment = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    const order = await Order.findOne({ orderId }).populate('userId');
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Call Zoho Utility
+    const paymentResponse = await createZohoPaymentLink(order);
+
+    // Update Order with initial payment info
+    order.paymentMethod = 'zoho';
+    order.zohoTransactionId = paymentResponse.transaction_id;
+    order.paymentGatewayResponse = paymentResponse;
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        paymentLink: paymentResponse.payment_link,
+        transactionId: paymentResponse.transaction_id
+      }
+    });
+
+  } catch (error) {
+    console.error('Error initiating payment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to initiate payment',
+      error: error.message
+    });
+  }
+};
+
+export const verifyPayment = async (req, res) => {
+  try {
+    // Handle both direct frontend call and Zoho Webhook payload
+    let { orderId, paymentId, status } = req.body;
+
+    // Map Zoho Webhook fields if present
+    if (!orderId && req.body.reference_id) {
+      orderId = req.body.reference_id;
+    }
+    if (!paymentId && req.body.payment_id) {
+      paymentId = req.body.payment_id;
+    }
+
+    // Zoho sends status in lowercase usually, e.g., "captured" or "credit"
+    if (!status && req.body.status) {
+      status = req.body.status;
+    }
+
+    console.log("Verifying Payment for:", { orderId, paymentId, status });
+
+    const order = await Order.findOne({ orderId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Map Zoho status to internal status
+    const successStatuses = ['success', 'paid', 'credit', 'captured'];
+    const isSuccess = successStatuses.includes(status?.toLowerCase());
+
+    if (isSuccess) {
+      order.status = 'confirmed';
+      order.paymentStatus = 'paid';
+      order.zohoPaymentId = paymentId;
+      await order.save();
+      console.log(`Order ${orderId} confirmed via Webhook`);
+    } else {
+      console.log(`Order ${orderId} payment status update: ${status}`);
+      // Don't mark as failed immediately if it's just 'initiated' or pending
+      if (status === 'failed') {
+        order.paymentStatus = 'failed';
+        await order.save();
+      }
+    }
+
+    res.status(200).json({ success: true, message: 'Payment verified' });
+
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ success: false, message: 'Verification failed' });
   }
 };

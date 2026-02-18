@@ -14,22 +14,22 @@ const orderSchema = new mongoose.Schema({
   },
   entityType: {
     type: String,
-    enum: ['occasion', 'service', 'category'],
+    enum: ['occasion', 'service', 'category', 'package'], // Added 'package'
     required: true
   },
   entityId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String, // Relaxed from ObjectId to String
     required: true
   },
   items: [{
-    itemId: mongoose.Schema.Types.ObjectId,
+    itemId: { type: String },
     name: String,
     category: String,
     quantity: Number,
     price: Number,
     baseQuantity: Number,
     measurement: String,
-    type: String,
+    type: { type: String }, // Explicit definition to avoid conflict with Mongoose 'type' keyword
     image: String
   }],
   bookingDetails: {
@@ -55,8 +55,20 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['razorpay', 'cod'],
+    enum: ['razorpay', 'cod', 'zoho'],
     default: null
+  },
+  zohoTransactionId: {
+    type: String,
+    default: null
+  },
+  zohoPaymentId: {
+    type: String,
+    default: null
+  },
+  paymentGatewayResponse: {
+    type: Object,
+    default: {}
   },
   address: {
     type: String,

@@ -54,10 +54,6 @@ export const upsertMenuSelection = async (entityType, entityId, data) => {
     // Removing duplicates from input arrays using Set
     const uniqueIds = (arr) => [...new Set(arr || [])];
 
-    // DEBUG: Log received data
-    console.log(`[upsertMenuSelection] ${entityType}/${entityId} - Input Data Keys:`, Object.keys(data));
-    if (data.unselectedStarters) console.log(`[upsertMenuSelection] Unselected Starters Count: ${data.unselectedStarters.length}`);
-
     const updateData = {
       starters: uniqueIds(data.starters),
       mainCourses: uniqueIds(data.mainCourses),
@@ -69,10 +65,7 @@ export const upsertMenuSelection = async (entityType, entityId, data) => {
       unselectedBreadRice: uniqueIds(data.unselectedBreadRice)
     };
 
-    console.log(`[upsertMenuSelection] Update Data Unselected Counts:`, {
-      starters: updateData.unselectedStarters.length,
-      mains: updateData.unselectedMainCourses.length
-    });
+
 
     const selection = await MenuSelection.findOneAndUpdate(
       { entityType, entityId },
