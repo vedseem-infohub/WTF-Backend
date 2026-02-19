@@ -232,11 +232,15 @@ export const initiatePayment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
+    // Check if already paid
+    if (order.paymentStatus === 'paid') {
+      return res.status(400).json({ success: false, message: 'Order is already paid.' });
+    }
+
     // Call Zoho Utility
     const paymentResponse = await createZohoPaymentLink(order);
 
     // Update Order with initial payment info
-    order.paymentMethod = 'zoho';
     order.zohoTransactionId = paymentResponse.transaction_id;
     order.paymentGatewayResponse = paymentResponse;
     await order.save();
@@ -272,19 +276,23 @@ export const verifyPayment = async (req, res) => {
       paymentId = req.body.payment_id;
     }
 
-    // Zoho sends status in lowercase usually, e.g., "captured" or "credit"
     if (!status && req.body.status) {
       status = req.body.status;
     }
 
+    // Verify Zoho Signature
+    const signature = req.headers['x-zoho-signature'];
+    // const calculatedSignature = crypto.createHmac('sha256', process.env.ZOHO_PAYMENT_SECRET)
+    //   .update(JSON.stringify(req.body)) // Payload must be raw string usually
+    //   .digest('hex');
+
+    // if (process.env.ZOHO_PAYMENT_SECRET && signature !== calculatedSignature) {
+    //    console.error('Invalid Zoho Signature');
+    //    return res.status(401).json({ success: false, message: 'Invalid Signature' });
+    // }
+
     console.log("Verifying Payment for:", { orderId, paymentId, status });
 
-    const order = await Order.findOne({ orderId });
-    if (!order) {
-      return res.status(404).json({ success: false, message: 'Order not found' });
-    }
-
-    // Map Zoho status to internal status
     const successStatuses = ['success', 'paid', 'credit', 'captured'];
     const isSuccess = successStatuses.includes(status?.toLowerCase());
 
@@ -296,7 +304,7 @@ export const verifyPayment = async (req, res) => {
       console.log(`Order ${orderId} confirmed via Webhook`);
     } else {
       console.log(`Order ${orderId} payment status update: ${status}`);
-      // Don't mark as failed immediately if it's just 'initiated' or pending
+
       if (status === 'failed') {
         order.paymentStatus = 'failed';
         await order.save();

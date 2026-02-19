@@ -10,15 +10,15 @@ const orderSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    default: null // Allow guest orders
+    default: null
   },
   entityType: {
     type: String,
-    enum: ['occasion', 'service', 'category', 'package'], // Added 'package'
+    enum: ['occasion', 'service', 'category', 'package'],
     required: true
   },
   entityId: {
-    type: String, // Relaxed from ObjectId to String
+    type: String,
     required: true
   },
   items: [{
@@ -29,7 +29,7 @@ const orderSchema = new mongoose.Schema({
     price: Number,
     baseQuantity: Number,
     measurement: String,
-    type: { type: String }, // Explicit definition to avoid conflict with Mongoose 'type' keyword
+    type: { type: String },
     image: String
   }],
   bookingDetails: {
@@ -79,7 +79,6 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create indexes for common queries
 orderSchema.index({ userId: 1, createdAt: -1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ createdAt: -1 });
