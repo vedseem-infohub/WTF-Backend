@@ -5,6 +5,9 @@ import { paginate } from '../utils/pagination.js';
 import User from '../models/User.js';
 import MenuItem from '../models/menuItems.model.js';
 import Occasion from '../models/occasions.model.js';
+import Service from '../models/service.model.js';
+import Category from '../models/category.model.js';
+import Package from '../models/Package.models.js';
 import { createZohoPaymentLink, verifyZohoPayment } from '../utils/zohoPayment.js';
 import crypto from 'crypto';
 
@@ -148,9 +151,28 @@ export const getOrder = async (req, res) => {
       });
     }
 
+    const orderObj = order.toObject();
+    try {
+      if (order.entityType === 'occasion') {
+        const entity = await Occasion.findById(order.entityId).select('title');
+        orderObj.entityName = entity?.title || null;
+      } else if (order.entityType === 'service') {
+        const entity = await Service.findById(order.entityId).select('name');
+        orderObj.entityName = entity?.name || null;
+      } else if (order.entityType === 'category') {
+        const entity = await Category.findById(order.entityId).select('name');
+        orderObj.entityName = entity?.name || null;
+      } else if (order.entityType === 'package') {
+        const entity = await Package.findById(order.entityId).select('packageName');
+        orderObj.entityName = entity?.packageName || null;
+      }
+    } catch (e) {
+      orderObj.entityName = null;
+    }
+
     res.status(200).json({
       success: true,
-      data: order
+      data: orderObj
     });
   } catch (error) {
     console.error('Error fetching order:', error);
@@ -198,6 +220,42 @@ export const getAllOrders = async (req, res) => {
       sort: { createdAt: -1 },
       populate: { path: 'userId', select: 'firstName lastName email phone' }
     });
+
+    // Enrich orders with entity names
+    if (result.data && result.data.length > 0) {
+      const entityMap = {};
+      const occasionIds = [], serviceIds = [], categoryIds = [], packageIds = [];
+
+      result.data.forEach(order => {
+        if (order.entityType === 'occasion') occasionIds.push(order.entityId);
+        else if (order.entityType === 'service') serviceIds.push(order.entityId);
+        else if (order.entityType === 'category') categoryIds.push(order.entityId);
+        else if (order.entityType === 'package') packageIds.push(order.entityId);
+      });
+
+      if (occasionIds.length) {
+        const occasions = await Occasion.find({ _id: { $in: occasionIds } }).select('title');
+        occasions.forEach(o => { entityMap[o._id.toString()] = o.title; });
+      }
+      if (serviceIds.length) {
+        const services = await Service.find({ _id: { $in: serviceIds } }).select('name');
+        services.forEach(s => { entityMap[s._id.toString()] = s.name; });
+      }
+      if (categoryIds.length) {
+        const categories = await Category.find({ _id: { $in: categoryIds } }).select('name');
+        categories.forEach(c => { entityMap[c._id.toString()] = c.name; });
+      }
+      if (packageIds.length) {
+        const packages = await Package.find({ _id: { $in: packageIds } }).select('packageName');
+        packages.forEach(p => { entityMap[p._id.toString()] = p.packageName; });
+      }
+
+      result.data = result.data.map(order => {
+        const orderObj = order.toObject ? order.toObject() : order;
+        orderObj.entityName = entityMap[orderObj.entityId] || null;
+        return orderObj;
+      });
+    }
 
     res.status(200).json(result);
   } catch (error) {
